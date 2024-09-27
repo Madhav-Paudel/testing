@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiger Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #video-feed {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+        }
+        #status {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        #connect-btn {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #connect-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tiger Detection</h1>
+        <img id="video-feed" src="" alt="Video Feed">
+        <div id="status">Disconnected</div>
+        <button id="connect-btn">Connect</button>
+    </div>
+
+    <script>
+        const videoFeed = document.getElementById('video-feed');
+        const statusDiv = document.getElementById('status');
+        const connectBtn = document.getElementById('connect-btn');
+        let socket = null;
+
+        function connectWebSocket() {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.close();
+            }
+
+            // Replace with your server's WebSocket URL
+            socket = new WebSocket('ws://127.0.0.1:8000/ws/webcam/');
+
+            socket.onopen = function(e) {
+                statusDiv.textContent = 'Connected';
+                connectBtn.textContent = 'Disconnect';
+            };
+
+            socket.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                videoFeed.src = 'data:image/jpeg;base64,' + data.frame;
+            };
+
+            socket.onclose = function(event) {
+                statusDiv.textContent = 'Disconnected';
+                connectBtn.textContent = 'Connect';
+            };
+
+            socket.onerror = function(error) {
+                console.log(error)
+                // console.error(`WebSocket Error: ${error}`);
+                // statusDiv.textContent = 'Error: ' + error;
+            };
+        }
+
+        connectBtn.onclick = function() {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.close();
+            } else {
+                connectWebSocket();
+            }
+        };
+    </script>
+</body>
+</html>
